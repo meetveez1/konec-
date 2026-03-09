@@ -1,30 +1,51 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hahahoho/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('School app renders key screens and switches theme mode', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const SchoolApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Расписание уроков'), findsOneWidget);
+    expect(find.text('Новости школы'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 700);
+    await tester.pumpAndSettle();
+    expect(find.text('Новости школы'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 700);
+    await tester.pumpAndSettle();
+    expect(find.text('Тема оформления'), findsOneWidget);
+
+    final darkCardBefore = tester.widget<Container>(
+      find.byKey(const Key('dark-theme-card')),
+    );
+    final lightCardBefore = tester.widget<Container>(
+      find.byKey(const Key('light-theme-card')),
+    );
+
+    final darkBorderBefore = darkCardBefore.decoration! as BoxDecoration;
+    final lightBorderBefore = lightCardBefore.decoration! as BoxDecoration;
+    expect(darkBorderBefore.border, isNotNull);
+    expect(lightBorderBefore.border, isNotNull);
+
+    await tester.tap(find.text('Светлая тема'));
+    await tester.pumpAndSettle();
+
+    final darkCardAfter = tester.widget<Container>(
+      find.byKey(const Key('dark-theme-card')),
+    );
+    final lightCardAfter = tester.widget<Container>(
+      find.byKey(const Key('light-theme-card')),
+    );
+
+    final darkBorderAfter = darkCardAfter.decoration! as BoxDecoration;
+    final lightBorderAfter = lightCardAfter.decoration! as BoxDecoration;
+
+    expect((darkBorderAfter.border! as Border).top.width, 1);
+    expect((lightBorderAfter.border! as Border).top.width, 2);
   });
 }
