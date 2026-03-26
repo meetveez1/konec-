@@ -1,17 +1,21 @@
 # hahahoho
 
-A new Flutter project.
+Школьное Flutter-приложение с экранами расписания, новостей и настроек темы.
 
-## Getting Started
+## Версии SDK
 
-This project is a starting point for a Flutter application.
+- Flutter: **3.35.x**
+- Dart SDK constraint: **^3.11.1** (из `pubspec.yaml`)
 
-A few resources to get you started if this is your first Flutter project:
+## Быстрый старт
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Тесты
+
+```bash
+flutter test
+```
