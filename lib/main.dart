@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 const String kFlutterVersion = '3.35.x';
@@ -125,6 +126,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final secondaryText = isDark ? Colors.white70 : const Color(0xFF576074);
 
     return Scaffold(
+      drawer: _AppDrawer(
+        selectedIndex: _pageIndex,
+        onSelect: (index) {
+          Navigator.of(context).pop();
+          _goToPage(index);
+        },
+      ),
       appBar: AppBar(
         title: const Text('Школьное\nприложение', style: TextStyle(fontWeight: FontWeight.w700)),
         leading: Builder(
