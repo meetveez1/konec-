@@ -1,6 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+const String kFlutterVersion = '3.35.x';
+const String kDartVersion = '3.11.x';
+
 void main() {
   runApp(const SchoolApp());
 }
@@ -15,9 +18,9 @@ class SchoolApp extends StatefulWidget {
 class _SchoolAppState extends State<SchoolApp> {
   ThemeMode _themeMode = ThemeMode.dark;
 
-  void _updateTheme(ThemeMode mode) {
+  void _toggleTheme(bool useDark) {
     setState(() {
-      _themeMode = mode;
+      _themeMode = useDark ? ThemeMode.dark : ThemeMode.light;
     });
   }
 
@@ -27,123 +30,66 @@ class _SchoolAppState extends State<SchoolApp> {
       debugShowCheckedModeBanner: false,
       title: 'Школьное приложение',
       themeMode: _themeMode,
-      scrollBehavior: const _AppScrollBehavior(),
-      theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
-      home: SchoolHomePage(
-        themeMode: _themeMode,
-        onThemeChanged: _updateTheme,
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
+      home: HomeScreen(
+        isDarkMode: _themeMode == ThemeMode.dark,
+        onThemeChanged: _toggleTheme,
       ),
     );
   }
 }
 
-class _AppScrollBehavior extends MaterialScrollBehavior {
-  const _AppScrollBehavior();
-
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-    PointerDeviceKind.stylus,
-    PointerDeviceKind.unknown,
-  };
-}
-
-class AppThemes {
-  static const Color midnightBlack = Color(0xFF0B0B0E);
-  static const LinearGradient cyanGreenGradient = LinearGradient(
-    colors: [Color(0xFF1EB7DA), Color(0xFF08CB61)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+ThemeData _buildLightTheme() {
+  return ThemeData(
+    useMaterial3: true,
+    scaffoldBackgroundColor: const Color(0xFFF2F4F8),
+    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00C8C8)),
+    appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFE0E0E0)),
   );
-
-  static ThemeData get darkTheme {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF16D6C8),
-      brightness: Brightness.dark,
-    );
-    return ThemeData(
-      brightness: Brightness.dark,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: midnightBlack,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF1A1B20),
-        foregroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-      ),
-      cardColor: const Color(0xFF17181D),
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-        ),
-        titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        titleMedium: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white70),
-      ),
-      useMaterial3: true,
-    );
-  }
-
-  static ThemeData get lightTheme {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF16D6C8),
-      brightness: Brightness.light,
-    );
-    return ThemeData(
-      brightness: Brightness.light,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFFF3F5F8),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF3A3D45),
-        foregroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-      ),
-      cardColor: Colors.white,
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          color: Color(0xFF131B2F),
-          fontWeight: FontWeight.w800,
-        ),
-        titleLarge: TextStyle(
-          color: Color(0xFF131B2F),
-          fontWeight: FontWeight.w700,
-        ),
-        titleMedium: TextStyle(
-          color: Color(0xFF131B2F),
-          fontWeight: FontWeight.w700,
-        ),
-        bodyLarge: TextStyle(color: Color(0xFF2C3954)),
-        bodyMedium: TextStyle(color: Color(0xFF5E6A81)),
-      ),
-      useMaterial3: true,
-    );
-  }
 }
 
-class SchoolHomePage extends StatefulWidget {
-  const SchoolHomePage({
+ThemeData _buildDarkTheme() {
+  const midnight = Color(0xFF0B0B0E);
+  const header = Color(0xFF1A1C22);
+
+  return ThemeData(
+    useMaterial3: true,
+    scaffoldBackgroundColor: midnight,
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF00D4C8),
+      secondary: Color(0xFF3DDC84),
+      surface: Color(0xFF14161B),
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: Colors.white,
+    ),
+    appBarTheme: const AppBarTheme(backgroundColor: header),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white),
+      titleLarge: TextStyle(color: Colors.white),
+    ),
+  );
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({
     super.key,
-    required this.themeMode,
+    required this.isDarkMode,
     required this.onThemeChanged,
   });
 
-  final ThemeMode themeMode;
-  final ValueChanged<ThemeMode> onThemeChanged;
+  final bool isDarkMode;
+  final ValueChanged<bool> onThemeChanged;
 
   @override
-  State<SchoolHomePage> createState() => _SchoolHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _SchoolHomePageState extends State<SchoolHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
-  int _pageIndex = 0;
+  int _currentPage = 0;
 
   @override
   void dispose() {
@@ -152,7 +98,7 @@ class _SchoolHomePageState extends State<SchoolHomePage> {
   }
 
   void _goToPage(int index) {
-    setState(() => _pageIndex = index);
+    setState(() => _currentPage = index);
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 280),
@@ -160,10 +106,24 @@ class _SchoolHomePageState extends State<SchoolHomePage> {
     );
   }
 
+  void _onMouseWheel(PointerSignalEvent signal) {
+    if (signal is PointerScrollEvent) {
+      final delta = signal.scrollDelta.dy;
+      if (delta > 0 && _currentPage < 2) {
+        _goToPage(_currentPage + 1);
+      } else if (delta < 0 && _currentPage > 0) {
+        _goToPage(_currentPage - 1);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentLabel = isDark ? const Color(0xFF5BE7C8) : const Color(0xFF00B993);
+    final isDark = widget.isDarkMode;
+    final pageBackground = isDark ? const Color(0xFF0B0B0E) : const Color(0xFFF2F4F8);
+    final cardColor = isDark ? const Color(0xFF14161B) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF121626);
+    final secondaryText = isDark ? Colors.white70 : const Color(0xFF576074);
 
     return Scaffold(
       drawer: _AppDrawer(
@@ -174,443 +134,51 @@ class _SchoolHomePageState extends State<SchoolHomePage> {
         },
       ),
       appBar: AppBar(
-        titleSpacing: 0,
-        title: const Text('Школьное\nприложение'),
+        title: const Text('Школьное\nприложение', style: TextStyle(fontWeight: FontWeight.w700)),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 12),
             child: CircleAvatar(
-              radius: 18,
-              backgroundColor: const Color(0xFF00C9A7),
-              child: Icon(
-                Icons.person_outline,
-                color: isDark ? Colors.black : Colors.white,
-              ),
+              radius: 20,
+              backgroundColor: const Color(0xFF00C8A8),
+              child: const Icon(Icons.person_outline, color: Colors.white),
             ),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              children: [
-                _TopChip(
-                  text: 'Расписание',
-                  active: _pageIndex == 0,
-                  accentColor: accentLabel,
-                  onTap: () => _goToPage(0),
-                ),
-                const SizedBox(width: 8),
-                _TopChip(
-                  text: 'Новости',
-                  active: _pageIndex == 1,
-                  accentColor: accentLabel,
-                  onTap: () => _goToPage(1),
-                ),
-                const SizedBox(width: 8),
-                _TopChip(
-                  text: 'Тема',
-                  active: _pageIndex == 2,
-                  accentColor: accentLabel,
-                  onTap: () => _goToPage(2),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) => setState(() => _pageIndex = index),
-              children: [
-                const SchedulePage(),
-                const NewsPage(),
-                ThemeSettingsPage(
-                  themeMode: widget.themeMode,
-                  onThemeChanged: widget.onThemeChanged,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopChip extends StatelessWidget {
-  const _TopChip({
-    required this.text,
-    required this.active,
-    required this.accentColor,
-    required this.onTap,
-  });
-
-  final String text;
-  final bool active;
-  final Color accentColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: active ? accentColor.withValues(alpha: 0.25) : Colors.transparent,
-            border: Border.all(
-              color: active ? accentColor : Theme.of(context).dividerColor,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: active ? accentColor : Theme.of(context).textTheme.bodyMedium?.color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SchedulePage extends StatelessWidget {
-  const SchedulePage({super.key});
-
-  static const lessons = [
-    ('Математика', 'Иванова А.П.', '08:30 - 09:15', 'Кабинет 204'),
-    ('Русский язык', 'Петрова С.В.', '09:25 - 10:10', 'Кабинет 301'),
-    ('История', 'Сидоров И.И.', '10:20 - 11:05', 'Кабинет 108'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
-      children: [
-        Text('Расписание уроков', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 4),
-        Text('Класс 9Б', style: Theme.of(context).textTheme.bodyLarge),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _dayPill(context, 'Понедельник', true),
-              _dayPill(context, 'Вторник', false),
-              _dayPill(context, 'Среда', false),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        ...lessons.asMap().entries.map(
-          (entry) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2B2E35) : const Color(0xFFE2E5EC),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        entry.value.$1,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFB8F0EA),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text('Урок ${entry.key + 1}'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(entry.value.$2, style: Theme.of(context).textTheme.bodyMedium),
-                const Divider(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _metaRow(icon: Icons.schedule, text: entry.value.$3),
-                    _metaRow(icon: Icons.location_pin, text: entry.value.$4),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dayPill(BuildContext context, String label, bool selected) {
-    final bg = selected
-        ? const LinearGradient(colors: [Color(0xFF23C2E7), Color(0xFF00CA70)])
-        : null;
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      decoration: BoxDecoration(
-        gradient: bg,
-        color: selected ? null : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected
-                ? Colors.white
-                : Theme.of(context).textTheme.bodyMedium?.color,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _metaRow({required IconData icon, required String text}) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: const Color(0xFFB14D6A)),
-        const SizedBox(width: 6),
-        Text(text),
-      ],
-    );
-  }
-}
-
-class NewsPage extends StatelessWidget {
-  const NewsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      children: [
-        Text('Новости школы', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 4),
-        Text(
-          'Все актуальные события и объявления',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 12),
-        ...List.generate(
-          2,
-          (index) => Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              gradient: AppThemes.cyanGreenGradient,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Container(
-              margin: const EdgeInsets.all(2),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          index == 0
-                              ? 'Начало нового учебного года'
-                              : 'Спортивный турнир между классами',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ),
-                      const Icon(Icons.schedule, size: 18),
-                      const SizedBox(width: 4),
-                      Text(index == 0 ? '1 сентября 2026' : '14 февраля 2026'),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    '1 сентября наша школа открыла двери для всех учеников. '
-                    'Торжественная линейка прошла успешно, все ученики получили... ',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const Divider(height: 22),
-                  const Row(
-                    children: [
-                      Icon(Icons.favorite_border),
-                      SizedBox(width: 6),
-                      Text('124'),
-                      SizedBox(width: 24),
-                      Icon(Icons.mode_comment_outlined),
-                      SizedBox(width: 6),
-                      Text('18'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class ThemeSettingsPage extends StatelessWidget {
-  const ThemeSettingsPage({
-    super.key,
-    required this.themeMode,
-    required this.onThemeChanged,
-  });
-
-  final ThemeMode themeMode;
-  final ValueChanged<ThemeMode> onThemeChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDarkActive = themeMode == ThemeMode.dark;
-    final isLightActive = themeMode == ThemeMode.light;
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-      children: [
-        Text('Тема оформления', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 4),
-        Text(
-          'Выберите внешний вид приложения',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 14),
-        _themeCard(
-          context,
-          cardKey: const Key('light-theme-card'),
-          icon: Icons.wb_sunny_outlined,
-          title: 'Светлая тема',
-          subtitle: 'Классический светлый дизайн',
-          active: isLightActive,
-          onTap: () => onThemeChanged(ThemeMode.light),
-          iconBackground: const Color(0xFFF5EAB9),
-        ),
-        const SizedBox(height: 12),
-        _themeCard(
-          context,
-          cardKey: const Key('dark-theme-card'),
-          icon: Icons.dark_mode_outlined,
-          title: 'Тёмная тема',
-          subtitle: 'Полночный мрак для комфорта',
-          active: isDarkActive,
-          onTap: () => onThemeChanged(ThemeMode.dark),
-          iconBackground: const Color(0xFF2B3D63),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFCBEDED),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF85DCD8)),
-          ),
-          child: const Text(
-            'Тёмная тема с полночным мраком (#0B0B0E) помогает снизить '
-            'нагрузку на глаза при использовании приложения в тёмное время суток.',
-            style: TextStyle(color: Color(0xFF1D3154), fontSize: 18),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _themeCard(
-    BuildContext context, {
-    required Key cardKey,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool active,
-    required VoidCallback onTap,
-    required Color iconBackground,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        key: cardKey,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: active ? const Color(0xFF09C1EC) : Theme.of(context).dividerColor,
-            width: active ? 2 : 1,
-          ),
-          color: Theme.of(context).cardColor,
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF03C7BA).withValues(alpha: 0.22),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
+      drawer: _MenuDrawer(selectedPage: _currentPage, onTap: _goToPage),
+      body: Listener(
+        onPointerSignal: _onMouseWheel,
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (index) => setState(() => _currentPage = index),
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: iconBackground,
-              ),
-              child: Icon(icon, size: 32),
+            _SchedulePage(
+              background: pageBackground,
+              cardColor: cardColor,
+              textColor: textColor,
+              secondaryText: secondaryText,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: Theme.of(context).textTheme.bodyLarge),
-                ],
-              ),
+            _NewsPage(
+              background: pageBackground,
+              cardColor: cardColor,
+              textColor: textColor,
+              secondaryText: secondaryText,
             ),
-            if (active)
-              const CircleAvatar(
-                radius: 14,
-                backgroundColor: Color(0xFF00BA8F),
-                child: Icon(Icons.check, color: Colors.white, size: 16),
-              ),
+            _ThemePage(
+              isDarkMode: widget.isDarkMode,
+              onThemeChanged: widget.onThemeChanged,
+              background: pageBackground,
+              cardColor: cardColor,
+              textColor: textColor,
+              secondaryText: secondaryText,
+            ),
           ],
         ),
       ),
@@ -618,69 +186,328 @@ class ThemeSettingsPage extends StatelessWidget {
   }
 }
 
-class _AppDrawer extends StatelessWidget {
-  const _AppDrawer({required this.selectedIndex, required this.onSelect});
+class _MenuDrawer extends StatelessWidget {
+  const _MenuDrawer({required this.selectedPage, required this.onTap});
 
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
+  final int selectedPage;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    final items = const [
-      (Icons.home_outlined, 'Главное', 0),
-      (Icons.calendar_today_outlined, 'Расписание', 0),
-      (Icons.info_outline, 'Доп информация', 1),
-      (Icons.settings_outlined, 'Настройки', 2),
-    ];
-
     return Drawer(
-      width: MediaQuery.of(context).size.width * 0.8,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(34)),
-      ),
       child: Container(
-        decoration: const BoxDecoration(gradient: AppThemes.cyanGreenGradient),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF2CB8D0), Color(0xFF00C86D)],
+          ),
+        ),
         child: SafeArea(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                title: const Text(
-                  'Меню',
-                  style: TextStyle(
-                    fontSize: 34,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                trailing: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                child: Text('Меню', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w700)),
               ),
-              const Divider(color: Colors.white54),
-              ...items.map((item) {
-                final active = item.$3 == selectedIndex;
-                return ListTile(
-                  onTap: () => onSelect(item.$3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  tileColor: active ? Colors.white.withValues(alpha: 0.92) : null,
-                  leading: Icon(
-                    item.$1,
-                    color: active ? const Color(0xFF059FC8) : Colors.white,
-                  ),
-                  title: Text(
-                    item.$2,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: active ? const Color(0xFF0582B4) : Colors.white,
-                    ),
-                  ),
-                );
-              }),
+              _menuTile(context, Icons.home_outlined, 'Главное', 0),
+              _menuTile(context, Icons.newspaper_outlined, 'Новости', 1),
+              _menuTile(context, Icons.settings_outlined, 'Настройки', 2),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _menuTile(BuildContext context, IconData icon, String label, int index) {
+    final selected = selectedPage == index;
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      tileColor: selected ? Colors.white.withOpacity(0.2) : null,
+      onTap: () {
+        Navigator.pop(context);
+        onTap(index);
+      },
+    );
+  }
+}
+
+class _SchedulePage extends StatelessWidget {
+  const _SchedulePage({
+    required this.background,
+    required this.cardColor,
+    required this.textColor,
+    required this.secondaryText,
+  });
+
+  final Color background;
+  final Color cardColor;
+  final Color textColor;
+  final Color secondaryText;
+
+  @override
+  Widget build(BuildContext context) {
+    final days = ['Понедельник', 'Вторник', 'Среда'];
+    return Container(
+      color: background,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Расписание уроков', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: textColor)),
+          const SizedBox(height: 8),
+          Text('Класс 9Б', style: TextStyle(fontSize: 21, color: secondaryText)),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 52,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: days.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final selected = i == 0;
+                return Chip(
+                  label: Text(days[i], style: TextStyle(color: selected ? Colors.white : secondaryText, fontWeight: FontWeight.w600)),
+                  backgroundColor: selected ? const Color(0xFF00C8A8) : cardColor,
+                  side: BorderSide(color: selected ? Colors.transparent : secondaryText.withOpacity(0.2)),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          _lessonCard('Математика', 'Иванова А.П.', '08:30 - 09:15', 'Кабинет 204'),
+          _lessonCard('Русский язык', 'Петрова С.В.', '09:25 - 10:10', 'Кабинет 301'),
+        ],
+      ),
+    );
+  }
+
+  Widget _lessonCard(String title, String teacher, String time, String room) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(18)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 30))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: const Color(0xFFCCF7EF), borderRadius: BorderRadius.circular(30)),
+                child: const Text('Урок', style: TextStyle(color: Color(0xFF00A8C0), fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(teacher, style: TextStyle(color: secondaryText, fontSize: 20)),
+          const SizedBox(height: 10),
+          Divider(color: secondaryText.withOpacity(0.15)),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('🕘 $time', style: TextStyle(color: secondaryText, fontWeight: FontWeight.w600)),
+              Text('📍 $room', style: TextStyle(color: secondaryText, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NewsPage extends StatelessWidget {
+  const _NewsPage({
+    required this.background,
+    required this.cardColor,
+    required this.textColor,
+    required this.secondaryText,
+  });
+
+  final Color background;
+  final Color cardColor;
+  final Color textColor;
+  final Color secondaryText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: background,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Новости школы', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: textColor)),
+          const SizedBox(height: 8),
+          Text('Все актуальные события и объявления', style: TextStyle(fontSize: 20, color: secondaryText)),
+          const SizedBox(height: 16),
+          _newsCard(
+            'Начало нового учебного года',
+            '1 сентября 2026',
+            '1 сентября наша школа открыла двери для всех учеников. Торжественная линейка прошла успешно...',
+          ),
+          _newsCard(
+            'Спортивный турнир между классами',
+            '14 февраля 2026',
+            'Команды 8-11 классов встретились в дружеском соревновании. Победители получили кубок школы.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _newsCard(String title, String date, String body) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.transparent, width: 2),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2CC7D0), Color(0xFF00CC77)],
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 32)),
+            const SizedBox(height: 6),
+            Text('🕒 $date', style: TextStyle(color: secondaryText, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            Text(body, style: TextStyle(color: secondaryText, fontSize: 20, height: 1.4)),
+            const SizedBox(height: 12),
+            Divider(color: secondaryText.withOpacity(0.15)),
+            const SizedBox(height: 6),
+            Text('♡ 124    💬 18', style: TextStyle(color: secondaryText, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemePage extends StatelessWidget {
+  const _ThemePage({
+    required this.isDarkMode,
+    required this.onThemeChanged,
+    required this.background,
+    required this.cardColor,
+    required this.textColor,
+    required this.secondaryText,
+  });
+
+  final bool isDarkMode;
+  final ValueChanged<bool> onThemeChanged;
+  final Color background;
+  final Color cardColor;
+  final Color textColor;
+  final Color secondaryText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: background,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Тема оформления', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: textColor)),
+          const SizedBox(height: 8),
+          Text('Выберите внешний вид приложения', style: TextStyle(fontSize: 20, color: secondaryText)),
+          const SizedBox(height: 16),
+          _themeTile(
+            icon: Icons.sunny,
+            title: 'Светлая тема',
+            subtitle: 'Классический светлый дизайн',
+            selected: !isDarkMode,
+            onTap: () => onThemeChanged(false),
+          ),
+          const SizedBox(height: 12),
+          _themeTile(
+            icon: Icons.nightlight_round,
+            title: 'Темная тема',
+            subtitle: 'Полночный мрак для комфорта',
+            selected: isDarkMode,
+            onTap: () => onThemeChanged(true),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00C8A8).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              'Темная тема с полночным мраком (#0B0B0E) помогает снизить нагрузку на глаза в темное время суток.\n\nВерсии SDK:\nFlutter: $kFlutterVersion\nDart: $kDartVersion',
+              style: TextStyle(color: textColor, height: 1.5, fontSize: 19),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _themeTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: selected ? const Color(0xFF00C8D4) : secondaryText.withOpacity(0.2), width: 2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: selected
+                      ? const [Color(0xFF2CC7D0), Color(0xFF00CC77)]
+                      : [secondaryText.withOpacity(0.1), secondaryText.withOpacity(0.25)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: selected ? Colors.white : secondaryText),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 24)),
+                  Text(subtitle, style: TextStyle(color: secondaryText, fontSize: 18)),
+                ],
+              ),
+            ),
+            if (selected)
+              const CircleAvatar(
+                radius: 14,
+                backgroundColor: Color(0xFF00C8A8),
+                child: Icon(Icons.check, color: Colors.white, size: 16),
+              ),
+          ],
         ),
       ),
     );
